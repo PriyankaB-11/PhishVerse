@@ -12,8 +12,24 @@ export default function DarkWebPage() {
   const [leaks, setLeaks] = useState<any[]>([]);
 
   useEffect(() => {
-    setLeaks(LocalMockDB.getLeaks());
-  }, []);
+    let active = true;
+
+    (async () => {
+      const snapshot = await LocalMockDB.getSessionSnapshot();
+      if (!active) return;
+
+      if (!snapshot) {
+        router.push("/auth");
+        return;
+      }
+
+      setLeaks(snapshot.leaks);
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [router]);
 
   return (
     <div className="min-h-screen bg-[#050505] p-6 font-mono text-green-500 relative overflow-hidden">

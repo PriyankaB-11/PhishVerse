@@ -25,7 +25,7 @@ export default function RansomwarePage() {
     else { cost = 250000; dataLeak = "Internal Communications"; }
 
     setDamage(cost);
-    LocalMockDB.recordFailure(cost, dataLeak);
+    void LocalMockDB.recordFailure(cost, dataLeak);
   }, []);
 
   const handleProceed = () => {

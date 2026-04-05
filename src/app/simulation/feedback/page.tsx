@@ -55,12 +55,12 @@ export default function FeedbackPage() {
     else points = 5; // safe action on safe email
 
     setScoreChange(points);
-    LocalMockDB.updateScore(points);
+    void LocalMockDB.updateScore(points);
 
     // Save history
     const timeTakenStr = sessionStorage.getItem("phishverse_timetaken");
     const timeTakenMs = timeTakenStr ? parseInt(timeTakenStr, 10) : 10000;
-    LocalMockDB.addHistoryEntry({
+    void LocalMockDB.addHistoryEntry({
       verdict: parsedScen.verdict,
       action: act,
       type: parsedScen.type || 'email',

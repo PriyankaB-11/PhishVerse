@@ -20,8 +20,24 @@ export default function StoryModePage() {
   const [currentLevel, setCurrentLevel] = useState(1);
 
   useEffect(() => {
-    setCurrentLevel(LocalMockDB.getLevel());
-  }, []);
+    let active = true;
+
+    (async () => {
+      const snapshot = await LocalMockDB.getSessionSnapshot();
+      if (!active) return;
+
+      if (!snapshot) {
+        router.push("/auth");
+        return;
+      }
+
+      setCurrentLevel(snapshot.level);
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [router]);
 
   const handleStartLevel = (type: string) => {
     // We set a specific type to force the simulation engine

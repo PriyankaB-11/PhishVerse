@@ -27,12 +27,13 @@ export default function AuthPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
-    // Simulate network delay for effect
-    setTimeout(() => {
-      LocalMockDB.login(email);
+
+    try {
+      await LocalMockDB.login(email);
       router.push("/dashboard");
-    }, 1500);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

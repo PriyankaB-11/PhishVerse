@@ -16,18 +16,32 @@ export default function DashboardPage() {
   const [level, setLevel] = useState(1);
   const [history, setHistory] = useState<any[]>([]);
   const [personality, setPersonality] = useState("CALIBRATING...");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const currentUser = LocalMockDB.getUser();
-    if (!currentUser) {
-      router.push("/auth");
-    } else {
-      setUser(currentUser);
-      setScore(LocalMockDB.getScore());
-      setLevel(LocalMockDB.getLevel());
-      setHistory(LocalMockDB.getHistory());
-      setPersonality(LocalMockDB.getPersonality());
-    }
+    let active = true;
+
+    (async () => {
+      const snapshot = await LocalMockDB.getSessionSnapshot();
+
+      if (!active) return;
+
+      if (!snapshot) {
+        router.push("/auth");
+        return;
+      }
+
+      setUser(snapshot.user);
+      setScore(snapshot.score);
+      setLevel(snapshot.level);
+      setHistory(snapshot.history);
+      setPersonality(snapshot.personality);
+      setLoading(false);
+    })();
+
+    return () => {
+      active = false;
+    };
   }, [router]);
 
   const handleLogout = () => {
@@ -35,7 +49,7 @@ export default function DashboardPage() {
     router.push("/");
   };
 
-  if (!user) return null;
+  if (loading || !user) return null;
 
   const rank = score < 20 ? "NOVICE" : score < 60 ? "OPERATIVE" : "EXPERT";
   const progressPercent = Math.min((score % 50) * 2, 100);
@@ -61,6 +75,9 @@ export default function DashboardPage() {
         <div className="flex gap-4">
           <Button onClick={() => router.push("/story")} className="bg-secondary/20 text-neon-pink border border-secondary hover:bg-secondary hover:text-black font-mono">
             STORY CAMPAIGN
+          </Button>
+          <Button onClick={() => router.push("/leaderboard")} className="bg-white/10 text-white border border-white/20 hover:bg-white hover:text-black font-mono">
+            <Trophy className="w-4 h-4 mr-2" /> LEADERBOARD
           </Button>
           <Button variant="outline" className="border-destructive/50 text-destructive hover:bg-destructive/10 font-mono" onClick={handleLogout}>
             <LogOut className="w-4 h-4 mr-2" /> DISCONNECT
