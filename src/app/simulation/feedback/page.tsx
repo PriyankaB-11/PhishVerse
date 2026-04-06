@@ -17,45 +17,63 @@ export default function FeedbackPage() {
   const [scoreChange, setScoreChange] = useState(0);
 
   useEffect(() => {
-    const scen = sessionStorage.getItem("phishverse_scenario");
-    const act = sessionStorage.getItem("phishverse_action");
-    if (!scen || !act) {
-      router.push("/dashboard");
-      return;
-    }
-    const parsedScen = JSON.parse(scen);
-    setScenario(parsedScen);
-    setAction(act);
+    let active = true;
 
-    // Score logic
-    let points = 0;
-    const isMalicious = parsedScen.verdict === "malicious";
-    
-    if (isMalicious && act === "report") points = 10;
-    else if (isMalicious && act === "ignore") points = 2; // neutral
-    else if (isMalicious && act === "click_link") points = -15; // failed!
-    else if (!isMalicious && act === "report") points = -5; // false positive
-    else points = 5; // safe action on safe email
+    (async () => {
+      const scen = sessionStorage.getItem("phishverse_scenario");
+      const act = sessionStorage.getItem("phishverse_action");
+      if (!scen || !act) {
+        router.push("/dashboard");
+        return;
+      }
 
-    setScoreChange(points);
-    void LocalMockDB.updateScore(points);
+      const parsedScen = JSON.parse(scen);
+      if (!active) return;
 
-    // Save history
-    const timeTakenStr = sessionStorage.getItem("phishverse_timetaken");
-    const timeTakenMs = timeTakenStr ? parseInt(timeTakenStr, 10) : 10000;
-    void LocalMockDB.addHistoryEntry({
-      verdict: parsedScen.verdict,
-      action: act,
-      type: parsedScen.type || 'email',
-      timeTakenMs
-    });
+      setScenario(parsedScen);
+      setAction(act);
 
-    // Optional: Play a sound effect if wanted as per "Sound effects (optional but impactful)"
-    try {
-      const audio = new Audio(points > 0 ? "https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg" : "https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg");
-      audio.volume = 0.2;
-      audio.play().catch(() => {});
-    } catch(e) {}
+      // Score logic
+      let points = 0;
+      const isMalicious = parsedScen.verdict === "malicious";
+
+      if (isMalicious && act === "report") points = 10;
+      else if (isMalicious && act === "ignore") points = 2; // neutral
+      else if (isMalicious && act === "click_link") points = -15; // failed!
+      else if (!isMalicious && act === "report") points = -5; // false positive
+      else points = 5; // safe action on safe email
+
+      setScoreChange(points);
+
+      const timeTakenStr = sessionStorage.getItem("phishverse_timetaken");
+      const timeTakenMs = timeTakenStr ? parseInt(timeTakenStr, 10) : 10000;
+      const resolutionId =
+        sessionStorage.getItem("phishverse_resolution_id") ||
+        `${parsedScen.type || "email"}:${act}:${timeTakenMs}`;
+      const appliedResolutionId = sessionStorage.getItem("phishverse_applied_resolution_id");
+
+      if (appliedResolutionId !== resolutionId) {
+        sessionStorage.setItem("phishverse_applied_resolution_id", resolutionId);
+        await LocalMockDB.updateScore(points);
+        await LocalMockDB.addHistoryEntry({
+          verdict: parsedScen.verdict,
+          action: act,
+          type: parsedScen.type || 'email',
+          timeTakenMs,
+        });
+      }
+
+      // Optional: Play a sound effect if wanted as per "Sound effects (optional but impactful)"
+      try {
+        const audio = new Audio(points > 0 ? "https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg" : "https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg");
+        audio.volume = 0.2;
+        audio.play().catch(() => {});
+      } catch (e) {}
+    })();
+
+    return () => {
+      active = false;
+    };
   }, [router]);
 
   let aiFeedbackText = "";

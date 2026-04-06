@@ -78,9 +78,11 @@ export default function SimulationPage() {
     
     setActionProcessing(actionType);
     const timeTaken = Date.now() - startTime;
+     const resolutionId = crypto.randomUUID();
     sessionStorage.setItem("phishverse_scenario", JSON.stringify(scenario));
     sessionStorage.setItem("phishverse_action", actionType);
     sessionStorage.setItem("phishverse_timetaken", timeTaken.toString());
+     sessionStorage.setItem("phishverse_resolution_id", resolutionId);
     
     // Add a slight delay for dramatic effect before navigation
     setTimeout(() => {

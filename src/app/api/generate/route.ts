@@ -168,7 +168,7 @@ export async function POST(req: Request) {
       - If 'voice': Spoken text directly without bracketed tags or labels (e.g. Do NOT output "[Caller]" or "[Automated Voice]").
       - If 'video': Spoken text directly from the deepfake avatar.
       
-      If malicious, include clear phishing red flags (urgency, spoofed domains). 
+      If malicious, include clear phishing red flags (urgency, spoofed domains). Do not generate too big or too small of a scenario - it should be just enough to demonstrate the concept without being overwhelming.
       If safe, make it a completely standard, benign communication with NO red flags, and the indicators should explain why it is safe (e.g. recognized domain, no urgency).
     `;
 
